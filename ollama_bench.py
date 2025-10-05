@@ -29,6 +29,14 @@ python ollama_bench.py --models llama3 --requests 30 --concurrency 10 \
 python ollama_bench.py --models llama3 llama3:8b --requests 100 --concurrency 20 \
   --prompt "Explain AI in one sentence." --stream --tui
 
+# Custom headers for API authentication (JSON format)
+python ollama_bench.py --models llama3 --requests 50 --concurrency 10 \
+  --prompt "Hello" --headers '{"Authorization":"Bearer YOUR_TOKEN"}'
+
+# Custom headers for API authentication (key:value format)
+python ollama_bench.py --models llama3 --requests 50 --concurrency 10 \
+  --prompt "Hello" --headers "Authorization:Bearer YOUR_TOKEN,X-API-Key:YOUR_KEY"
+
 Prereqs
 -------
 pip install ollama==0.3.*  # https://github.com/ollama/ollama-python
@@ -110,6 +118,8 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
                    help="JSON dict of generation options passed to Ollama (e.g., '{\"temperature\":0.2,\"num_predict\":64}').")
     p.add_argument("--host", type=str, default=None,
                    help="Ollama host like http://localhost:11434. Defaults to env OLLAMA_HOST or library default.")
+    p.add_argument("--headers", type=str, default=None,
+                   help="Custom HTTP headers for API auth. JSON dict like '{\"Authorization\":\"Bearer token\"}' or key:value pairs like 'Authorization:Bearer token,X-API-Key:key'.")
     p.add_argument("--timeout", type=float, default=0,
                    help="Per‑request timeout in seconds (0 = no timeout). Applies to the client socket.")
     p.add_argument("--warmup", type=int, default=0, help="Number of warmup requests per model (not measured).")
@@ -170,6 +180,30 @@ def maybe_json(s: Optional[str]) -> Optional[Dict[str, Any]]:
         return json.loads(s)
     except json.JSONDecodeError as e:
         raise SystemExit(f"--options must be JSON: {e}")
+
+
+def parse_headers(spec: Optional[str]) -> Optional[Dict[str, str]]:
+    """Parse custom headers from JSON or key:value format"""
+    if not spec:
+        return None
+    # Try JSON first
+    try:
+        headers = json.loads(spec)
+        if not isinstance(headers, dict):
+            raise ValueError("Headers must be a JSON object")
+        return {str(k): str(v) for k, v in headers.items()}
+    except json.JSONDecodeError:
+        # Parse key:value[,key:value] format
+        headers: Dict[str, str] = {}
+        for pair in spec.split(","):
+            pair = pair.strip()
+            if not pair:
+                continue
+            if ":" not in pair:
+                raise ValueError(f"Invalid header pair (expected key:value): {pair}")
+            k, v = pair.split(":", 1)
+            headers[k.strip()] = v.strip()
+        return headers if headers else None
 
 # ------------------------------ Real-time metrics --------------------
 
@@ -1049,7 +1083,13 @@ class Bench:
         self.options = maybe_json(args.options)
         if args.seed is not None:
             random.seed(args.seed)
-        self.client = Client(host=args.host, timeout=args.timeout if args.timeout > 0 else None)
+        # Parse custom headers
+        headers = parse_headers(args.headers)
+        # Create client with optional headers
+        client_kwargs = {"host": args.host, "timeout": args.timeout if args.timeout > 0 else None}
+        if headers:
+            client_kwargs["headers"] = headers
+        self.client = Client(**client_kwargs)
         self.prompts_pool = self._load_prompts_jsonl(args.prompts_jsonl) if args.prompts_jsonl else None
         self.live_metrics: Optional[LiveMetrics] = None
         self.model_info: Dict[str, Dict[str, Any]] = {}  # Cache model information

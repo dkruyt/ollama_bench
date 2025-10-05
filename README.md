@@ -145,6 +145,34 @@ python ollama_bench.py \
   --silent
 ```
 
+### Custom Headers for API Authentication
+
+```bash
+# Use custom headers with JSON format
+python ollama_bench.py \
+  --models llama3 \
+  --requests 50 \
+  --concurrency 10 \
+  --prompt "Hello" \
+  --headers '{"Authorization":"Bearer YOUR_TOKEN"}'
+
+# Use custom headers with key:value format
+python ollama_bench.py \
+  --models llama3 \
+  --requests 50 \
+  --concurrency 10 \
+  --prompt "Hello" \
+  --headers "Authorization:Bearer YOUR_TOKEN,X-API-Key:YOUR_KEY"
+
+# Connect to remote Ollama with authentication
+python ollama_bench.py \
+  --host https://api.example.com \
+  --headers '{"Authorization":"Bearer YOUR_TOKEN"}' \
+  --models llama3 \
+  --requests 100 \
+  --stream --tui
+```
+
 ## Command Line Options
 
 ### Required Options
@@ -188,6 +216,9 @@ python ollama_bench.py \
 ### Connection Options
 
 - `--host URL` - Ollama server URL (default: from OLLAMA_HOST env or library default)
+- `--headers HEADERS` - Custom HTTP headers for API authentication
+  - JSON format: `'{"Authorization":"Bearer token"}'`
+  - Key:value format: `'Authorization:Bearer token,X-API-Key:key'`
 - `--timeout SECONDS` - Per-request timeout in seconds (0 = no timeout)
 - `--seed N` - Random seed for reproducible shuffling/prompt cycling
 

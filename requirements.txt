@@ -1,0 +1,18 @@
+# Ollama Bench Requirements
+
+# Core dependency - Ollama Python client
+ollama>=0.3.0,<0.4.0
+
+# TUI display (required for --tui mode)
+rich>=13.0.0
+
+# Standard library modules (included with Python 3.8+)
+# - argparse
+# - asyncio
+# - csv
+# - datetime
+# - json
+# - pathlib
+# - statistics
+# - threading
+# - typing

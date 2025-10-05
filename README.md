@@ -2,6 +2,12 @@
 
 A powerful, parallel benchmark tool for [Ollama](https://ollama.ai) models with real-time TUI monitoring and comprehensive performance metrics.
 
+![Real-time TUI dashboard showing live token preview with streaming responses, active requests table, and detailed per-model statistics including latency, TTFT, and token throughput metrics](images/ollama_bench01.png)
+*Real-time TUI dashboard with live token preview showing streaming responses from multiple concurrent requests, active request tracking, and comprehensive performance metrics.*
+
+![Multi-model comparison showing llama3.1:latest and qwen3:0.6b being benchmarked in parallel with live token preview displaying AI-generated content in real-time](images/ollama_bench02.png)
+*Multi-model comparison benchmarking llama3.1:latest and qwen3:0.6b in parallel, with live token preview showing streaming AI responses.*
+
 ## Features
 
 - 🚀 **Parallel request execution** - Test models under realistic concurrent load
